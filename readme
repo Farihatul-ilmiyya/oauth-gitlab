@@ -1,0 +1,43 @@
+aplicationID:9586acbb28d721f5fe6735b72203eabd0da7941bf9e23aad64161147d58b6a38
+Secret:gloas-ab92688cb0a17bf9ebceee5680c47f64f5af922be9f3189d3590e64835218f96
+CallbackURL: http://localhost:3000/gitlabcallback/
+
+//POST request to set URL
+req, reqerr := http.NewRequest(
+	"POST",
+	"http://gitlab.com/login/oauth/token",
+	bytes.NewBuffer(requestJSON),
+)
+if reqerr != nil {
+	log.Panic("Request creation failed")
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Accept", "application/json")
+
+//Get the response
+resp, resperr := http.DefaultClient.Do(req)
+if resperr != nil {
+	log.Panic("Request failed")
+}
+
+//Response body converted to stringified JSON
+respbody, _ := ioutil.ReadAll(resp.Body)
+
+log.Println("GitLab Access Token Request Body:", string(requestJSON))
+log.Println("GitLab Access Token Response:", string(respbody))
+
+//Represents the response received from gitlab
+type gitlabAccessTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	Scope       string `json:"scope"`
+}
+
+//Convert stringfied JSON to a struct object of tye gitlabAccessToken
+var gitlabResp gitlabAccessTokenResponse
+json.Unmarshal(respbody, &gitlabResp)
+
+// Return the access token (as the rest of the
+// details are relatively unnecessary for us)
+return gitlabResp.AccessToken
+}
